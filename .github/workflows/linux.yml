@@ -1,0 +1,34 @@
+name: Linux checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ubuntu:
+    name: Ubuntu / Node.js 24 / npm ${{ matrix.npm }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        npm: [11, 12]
+    env:
+      SHARP_IGNORE_GLOBAL_LIBVIPS: '1'
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Check Linux scripts
+        run: bash -n install.sh start.sh stop.sh toggle-autostart.sh scripts/linux-common.sh
+      - name: Install npm version
+        run: npm install --global npm@${{ matrix.npm }}
+      - run: npm ci
+      - run: npm test

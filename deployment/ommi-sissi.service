@@ -1,0 +1,22 @@
+[Unit]
+Description=OMMI SISSI Digital Signage
+After=network.target
+
+[Service]
+Type=simple
+# Replace paths and the dedicated user before installing.
+User=ommisissi
+WorkingDirectory=/opt/ommi-sissi-signage
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node /opt/ommi-sissi-signage/server.js
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/ommi-sissi-signage/data /opt/ommi-sissi-signage/uploads /opt/ommi-sissi-signage/logs /opt/ommi-sissi-signage/backups
+
+[Install]
+WantedBy=multi-user.target

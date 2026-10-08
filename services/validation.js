@@ -1,0 +1,14 @@
+import {z} from 'zod';
+export const id=z.coerce.number().int().positive();
+const text=z.string().trim().max(250), name=text.min(1), description=z.string().trim().max(4000).default('');
+const flag=z.union([z.boolean(),z.literal(0),z.literal(1)]).transform(Number).default(1);
+export const time=z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/);
+export const date=z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(s=>{const d=new Date(`${s}T12:00:00Z`);return !isNaN(d)&&d.toISOString().slice(0,10)===s;},'Date invalide');
+const nullable=s=>s.nullish().transform(v=>v||null);
+export const hour=z.object({day_of_week:z.number().int().min(0).max(6),is_closed:flag,opening_time:time,closing_time:time}).refine(v=>v.is_closed||v.opening_time!==v.closing_time,'Utilisez un horaire différent pour la fermeture');
+export const storeSchema=z.object({name,code:name.max(40),address:text.default(''),description,timezone:name.default('Africa/Tunis').refine(v=>{try{new Intl.DateTimeFormat('fr',{timeZone:v});return true;}catch{return false;}},'Fuseau horaire invalide'),enabled:flag,closed_screen_enabled:flag,hours:z.array(hour).length(7).refine(v=>new Set(v.map(x=>x.day_of_week)).size===7),exceptions:z.array(z.object({date,is_closed:flag,opening_time:nullable(time),closing_time:nullable(time),label:text.default('')}).refine(v=>v.is_closed||(v.opening_time&&v.closing_time&&v.opening_time!==v.closing_time))).max(366).default([])});
+export const groupSchema=z.object({name,description,enabled:flag,playlist_id:nullable(id)});
+export const displaySchema=z.object({name,store_id:id,group_id:id,enabled:flag});
+export const itemSchema=z.object({media_id:id,image_duration_seconds:z.coerce.number().min(1).max(3600).default(8),enabled:flag,fit:z.enum(['contain','cover']).default('contain'),start_date:nullable(date),end_date:nullable(date),start_time:nullable(time),end_time:nullable(time)}).refine(v=>!v.start_date||!v.end_date||v.start_date<=v.end_date,'La fin doit suivre le début').refine(v=>Boolean(v.start_time)===Boolean(v.end_time),'Indiquez les deux horaires');
+export const playlistSchema=z.object({name,description,enabled:flag,items:z.array(itemSchema).max(500).default([])});
+export const userSchema=z.object({username:z.string().trim().regex(/^[\p{L}\p{N}_.-]{3,40}$/u),password:z.string().min(12).max(128),role:z.enum(['admin','user']).default('user')});

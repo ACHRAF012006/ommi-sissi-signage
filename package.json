@@ -1,0 +1,55 @@
+{
+  "name": "ommi-sissi-signage",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Plateforme d’affichage dynamique OMMI SISSI",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ACHRAF012006/ommi-sissi-signage.git"
+  },
+  "allowScripts": {
+    "better-sqlite3@12.11.1": true
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "init-db": "node scripts/init-db.js",
+    "create-admin": "node scripts/create-admin.js",
+    "seed": "node scripts/seed.js",
+    "backup": "node scripts/backup.js",
+    "test": "node --test --test-concurrency=1 tests/*.test.js",
+    "test:browser": "node tests/browser.js",
+    "test:admin-browser": "node tests/admin-startup.browser.js",
+    "test:player-frame": "node tests/player-frame.browser.js",
+    "test:landing-browser": "node tests/landing.browser.js",
+    "test:roles-browser": "node tests/roles.browser.js",
+    "reset-admin": "node scripts/reset-admin.js",
+    "stop": "bash stop.sh",
+    "autostart": "bash toggle-autostart.sh",
+    "test:player-transition": "node tests/player-transition.browser.js"
+  },
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "bcryptjs": "^3.0.2",
+    "better-sqlite3": "^12.4.1",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0",
+    "express-session": "^1.18.2",
+    "file-type": "^21.0.0",
+    "helmet": "^8.1.0",
+    "multer": "^2.0.2",
+    "sharp": "^0.35.5",
+    "socket.io": "^4.8.1",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
+    "socket.io-client": "^4.8.1",
+    "supertest": "^7.1.4"
+  }
+}
