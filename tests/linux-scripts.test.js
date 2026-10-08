@@ -20,8 +20,8 @@ test('systemd service generation accepts project paths with spaces, percent and 
  const result=spawnSync(process.execPath,[path.join(root,'scripts/systemd-service.js'),'1000'],{encoding:'utf8'});assert.equal(result.status,0,result.stderr);assert.match(result.stdout,/User=1000/);assert.ok(result.stdout.includes('unit spaces %% $'));fs.writeFileSync(unit,result.stdout);
  const verified=spawnSync('systemd-analyze',['verify',unit],{encoding:'utf8'});if(verified.error?.code==='ENOENT'){t.skip('systemd-analyze unavailable');return;}assert.equal(verified.status,0,verified.stderr);
 });
-test('autostart status, toggle, on/off and ownership checks use an isolated mocked service manager',{skip:process.platform!=='linux'||!fs.existsSync('/run/systemd/system')},()=>{
- const root=fixture('auto start');const bin=path.join(root,'bin');fs.mkdirSync(bin);const stateFile=path.join(root,'state.json'),calls=path.join(root,'calls.jsonl');
+function serviceManagerFixture(root){
+ const bin=path.join(root,'bin');fs.mkdirSync(bin);const stateFile=path.join(root,'state.json'),calls=path.join(root,'calls.jsonl');
  fs.writeFileSync(stateFile,JSON.stringify({loaded:false,enabled:false,root}));
  const fakeSystemctl=`#!/usr/bin/env node
 import fs from 'node:fs';const args=process.argv.slice(2),file=process.env.SIGNAGE_TEST_STATE,state=JSON.parse(fs.readFileSync(file));fs.appendFileSync(process.env.SIGNAGE_TEST_CALLS,JSON.stringify(['systemctl',...args])+'\\n');
@@ -39,6 +39,10 @@ import fs from 'node:fs';const args=process.argv.slice(2),file=process.env.SIGNA
 `;
  for(const [name,body]of [['systemctl',fakeSystemctl],['install',fakeInstall],['sudo','#!/usr/bin/env bash\nif [[ "$1" == -- ]]; then shift; fi\nexec "$@"\n']])fs.writeFileSync(path.join(bin,name),body,{mode:0o755});
  const env={...process.env,PATH:bin+path.delimiter+process.env.PATH,SUDO_USER:process.getuid()===0?'nobody':os.userInfo().username,SIGNAGE_TEST_STATE:stateFile,SIGNAGE_TEST_CALLS:calls,SIGNAGE_TEST_UNIT:path.join(root,'installed.service')};
+ return {env,stateFile,calls,bin};
+}
+test('autostart status, toggle, on/off and ownership checks use an isolated mocked service manager',{skip:process.platform!=='linux'||!fs.existsSync('/run/systemd/system')},()=>{
+ const root=fixture('auto start');const {env,stateFile,calls}=serviceManagerFixture(root);
  const run=action=>spawnSync('bash',[path.join(root,'toggle-autostart.sh'),...(action?[action]:[])],{env,encoding:'utf8',timeout:10000});
  let result=run('status');assert.equal(result.status,0,result.stderr);assert.match(result.stdout,/désactivé/);
  result=run();assert.equal(result.status,0,result.stderr);assert.equal(JSON.parse(fs.readFileSync(stateFile)).enabled,true);assert.ok(fs.readFileSync(env.SIGNAGE_TEST_UNIT,'utf8').includes(root));
@@ -80,4 +84,25 @@ test('start script launches from any directory, detects duplicates and can be st
   const pid=Number(fs.readFileSync(path.join(root,'ready.pid')));const second=spawnSync('bash',[path.join(root,'start.sh')],{cwd:directory,env,encoding:'utf8',timeout:5000});assert.equal(second.status,0,second.stderr);assert.match(second.stdout,/déjà en cours/);assert.equal(Number(fs.readFileSync(path.join(root,'ready.pid'))),pid);
   const stop=spawnSync('bash',[path.join(root,'stop.sh')],{env,encoding:'utf8',timeout:10000});assert.equal(stop.status,0,stop.stderr);assert.equal(fs.readFileSync(path.join(root,'stopped'),'utf8'),'graceful');
  }finally{try{child.kill('SIGKILL');}catch{}}
+});
+
+
+test('installer enables boot by default, remains enabled on reinstall, supports opt-out and reports service errors',{skip:process.platform!=='linux'||!fs.existsSync('/run/systemd/system')},()=>{
+ const root=fixture('installer with spaces');const {env,stateFile,calls,bin}=serviceManagerFixture(root);
+ for(const file of ['install.sh','scripts/setup-env.js','.env.example'])fs.copyFileSync(file,path.join(root,file));
+ const npmCalls=path.join(root,'npm-calls.jsonl');
+ fs.writeFileSync(path.join(bin,'npm'),`#!/usr/bin/env node
+import fs from 'node:fs';fs.appendFileSync(process.env.SIGNAGE_NPM_CALLS,JSON.stringify(process.argv.slice(2))+'\\n');
+`,{mode:0o755});
+ const run=(...args)=>spawnSync('bash',[path.join(root,'install.sh'),...args],{cwd:directory,env:{...env,SIGNAGE_NPM_CALLS:npmCalls},input:'n\n',encoding:'utf8',timeout:10000});
+ const state=()=>JSON.parse(fs.readFileSync(stateFile));
+ let result=run();assert.equal(result.status,0,result.stderr);assert.equal(state().enabled,true);assert.match(result.stdout,/Installation terminée/);
+ const settings=fs.readFileSync(path.join(root,'.env'),'utf8');assert.ok(!settings.includes('SESSION_SECRET=CHANGE_ME'));
+ result=run();assert.equal(result.status,0,result.stderr);assert.equal(state().enabled,true);assert.equal(fs.readFileSync(path.join(root,'.env'),'utf8'),settings);
+ const operations=fs.readFileSync(calls,'utf8').trim().split('\n').map(JSON.parse);assert.equal(operations.filter(call=>call[0]==='install').length,1);assert.ok(!operations.some(call=>call.includes('start')||call.includes('stop')||call.includes('disable')||call.includes('--now')));
+ const before=fs.readFileSync(calls,'utf8');result=run('--no-autostart');assert.equal(result.status,0,result.stderr);assert.equal(state().enabled,true);assert.equal(fs.readFileSync(calls,'utf8'),before);
+ fs.writeFileSync(stateFile,JSON.stringify({...state(),enabled:false}));result=run('--no-autostart');assert.equal(result.status,0,result.stderr);assert.equal(state().enabled,false);assert.equal(fs.readFileSync(calls,'utf8'),before);
+ fs.writeFileSync(stateFile,JSON.stringify({...state(),root:'/another/installation'}));result=run();assert.equal(result.status,1);assert.match(result.stderr,/autre installation/);assert.ok(!result.stdout.includes('Installation terminée'));assert.equal(state().enabled,false);
+ const dependencies=fs.readFileSync(npmCalls,'utf8').trim().split('\n').map(JSON.parse);assert.deepEqual(dependencies[0],['ci','--omit=dev']);assert.ok(!dependencies.some(call=>call.includes('create-admin')));
+ const beforeInvalid=fs.readFileSync(npmCalls,'utf8');result=run('--invalid');assert.equal(result.status,2);result=run('--no-autostart','extra');assert.equal(result.status,2);result=run('--help');assert.equal(result.status,0);assert.equal(fs.readFileSync(npmCalls,'utf8'),beforeInvalid);
 });

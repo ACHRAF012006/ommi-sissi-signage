@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd -- "$(dirname -- "${BASH_SOURCE[0]}")"
+autostart=true
+[[ $# -le 1 ]] || { echo 'Usage : ./install.sh [--no-autostart]' >&2; exit 2; }
+case "${1:-}" in
+  '') ;;
+  --no-autostart) autostart=false ;;
+  -h|--help) echo 'Usage : ./install.sh [--no-autostart]'; echo 'Le démarrage au boot via systemd est activé par défaut (sudo peut être demandé).'; exit 0 ;;
+  *) echo 'Usage : ./install.sh [--no-autostart]' >&2; exit 2 ;;
+esac
 if [[ -f /etc/os-release ]]; then source /etc/os-release; fi
 node_ok=false
 if command -v node >/dev/null 2>&1; then node -e 'const [a,b]=process.versions.node.split(".").map(Number);process.exit(a>22||(a===22&&b>=12)?0:1)' && node_ok=true; fi
@@ -28,4 +36,10 @@ chmod 600 .env
 chmod +x start.sh stop.sh toggle-autostart.sh
 read -r -p 'Créer un administrateur maintenant ? [O/n] : ' response
 if [[ "${response,,}" != n ]]; then npm run create-admin; else echo 'Créez le compte avec : npm run create-admin'; fi
+if $autostart; then
+  echo 'Activation du démarrage automatique au boot (sudo peut être demandé)…'
+  ./toggle-autostart.sh on
+else
+  echo 'Configuration du démarrage au boot ignorée (--no-autostart).'
+fi
 printf '\nInstallation terminée.\nDéveloppement : npm run dev\nProduction : ./start.sh\nAdministration : http://localhost:3000/admin\nTV : http://IP-DU-SERVEUR:3000/display\n'

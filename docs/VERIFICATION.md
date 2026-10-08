@@ -1,5 +1,13 @@
 # Vérification de livraison
 
+## Version 1.0.1 — démarrage au boot par défaut
+
+- L’installation Linux active explicitement le service au boot, y compris après réinstallation, sans basculer un service déjà activé vers l’état désactivé.
+- `--no-autostart` ignore la configuration systemd et conserve son état actuel.
+- Test d’intégration avec gestionnaire de services simulé : installation, réinstallation, conservation de `.env`, opt-out, conflit avec une autre installation et erreurs d’arguments vérifiés. Aucun service réel n’est modifié par les tests.
+- `npm test` : 33 tests réussis sous CachyOS ; syntaxe Bash et `git diff --check` validés.
+- Le serveur démarre au prochain boot ; `./start.sh` permet de le démarrer immédiatement après installation.
+
 ## Préparation du dépôt public — 8 octobre 2026
 
 Vérifications sur une copie propre du code, séparée des données locales, sous CachyOS avec Node.js 24.21.0 et npm 12.2.0 :

@@ -9,7 +9,7 @@ cd ommi-sissi-signage
 ./start.sh
 ```
 
-Install Node.js 24 LTS and npm first. The [Linux guide](docs/INSTALL-LINUX.md) includes prerequisite commands for both distributions. A fresh download starts with an empty database and asks you to create your own administrator account.
+Install Node.js 24 LTS and npm first. The [Linux guide](docs/INSTALL-LINUX.md) includes prerequisite commands for both distributions. A fresh download starts with an empty database and asks you to create your own administrator account. Linux installation enables startup at boot through systemd by default; sudo may be requested. Use `./install.sh --no-autostart` for manual installation.
 
 Application d’affichage dynamique **autohébergée**, en français, pour piloter les TVs de plusieurs magasins OMMI SISSI. Node.js / Express, SQLite, HTML/CSS/JavaScript natif et Socket.IO. Aucun service cloud, compte externe ni abonnement requis. Le logo et la police sont servis localement.
 
@@ -56,7 +56,7 @@ chmod +x install.sh start.sh
 ./install.sh
 ```
 
-L’installateur détecte CachyOS/Arch et propose `pacman` si Node.js ou npm manque. Il installe les dépendances, prépare les dossiers, crée `.env` avec un secret aléatoire, initialise SQLite puis propose la création du premier compte.
+L’installateur détecte CachyOS/Arch et propose `pacman` si Node.js ou npm manque. Il installe les dépendances, prépare les dossiers, crée `.env` avec un secret aléatoire, initialise SQLite, propose la création du premier compte puis active le démarrage au boot via systemd par défaut. Il peut demander le mot de passe sudo. `./install.sh --no-autostart` ignore la configuration du service et conserve son état existant.
 
 Installation manuelle du runtime, si nécessaire :
 
@@ -157,6 +157,8 @@ Un seul processus Node.js est recommandé pour SQLite et les rooms Socket.IO loc
 ### Linux : démarrer, arrêter et basculer le démarrage au boot
 
 Scripts fournis pour CachyOS, Arch, Debian et Ubuntu avec systemd :
+
+`./install.sh` active automatiquement le démarrage au boot. Le serveur sera lancé au prochain boot ; `./start.sh` le démarre immédiatement. Sur un système sans systemd ou pour un lancement manuel, utilisez `./install.sh --no-autostart`. Si la configuration du service échoue, l’installateur s’arrête avec une erreur.
 
 ```bash
 ./start.sh                           # Démarre cette installation

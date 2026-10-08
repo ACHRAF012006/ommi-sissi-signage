@@ -55,23 +55,27 @@ chmod +x install.sh start.sh stop.sh toggle-autostart.sh
 ./start.sh
 ```
 
-The installer downloads locked production dependencies, creates the folders, generates a unique session secret in `.env`, initializes an empty SQLite database, and asks you to create your administrator username and password. Existing settings and data are preserved when reinstalling. If you skip account creation, run `npm run create-admin` before logging in.
+The installer downloads locked production dependencies, creates the folders, generates a unique session secret in `.env`, initializes an empty SQLite database, asks you to create your administrator username and password, and **enables startup at boot by default** using systemd. It may ask for your sudo password to install and enable the service. Existing settings and data are preserved when reinstalling. If you skip account creation, run `npm run create-admin` before logging in.
 
 Open **http://localhost:3000/** on the server, or **http://SERVER-IP:3000/** from another computer on the same network. Administration is at `/admin`; TV setup is at `/display`. Allow TCP port 3000 through your firewall for other devices.
 
-Keep the terminal open while the server runs. Stop it with Ctrl+C or `./stop.sh`.
+After installation, `./start.sh` starts the service in the background. It will also start automatically after reboot. Stop it with `./stop.sh`; this leaves startup at boot enabled.
 
-## 4. Optional: start at boot
+## 4. Manage startup at boot
 
-On a machine running systemd:
+Startup at boot is enabled during installation. Check or change it with:
 
 ```bash
-./toggle-autostart.sh on
-./stop.sh
-./start.sh
+./toggle-autostart.sh status
+./toggle-autostart.sh off     # Disable startup at boot
+./toggle-autostart.sh on      # Enable it again
 ```
 
 This creates a service for your user and installation path, including the absolute Node.js path. With nvm, regenerate the service if you later remove or move that Node.js installation. See the [full README](../README.md) for service management.
+
+For a manual installation, or a container without systemd, run `./install.sh --no-autostart`. This skips service configuration and preserves any existing startup setting. Without a configured service, `./start.sh` runs in the foreground; keep its terminal open. A default installation reports failure if service setup fails, rather than reporting that startup at boot is enabled.
+
+When updating a manual installation, use `./install.sh --no-autostart` again to keep skipping service setup.
 
 ## Updates and personal data
 
