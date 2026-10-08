@@ -2,12 +2,35 @@
 
 OMMI SISSI is a self-hosted digital signage server. Run these commands in a terminal as your normal user. Internet access is required to download the code and dependencies. The same source release works on both distributions; native dependencies are installed for your own machine.
 
-## 1. Install prerequisites
+## 0. Install Git first
+
+Download [install-git.sh](https://raw.githubusercontent.com/ACHRAF012006/ommi-sissi-signage/main/install-git.sh) in your browser, then open a terminal in the download folder:
+
+```bash
+bash install-git.sh
+```
+
+The standalone script needs no Node.js or project files. It detects CachyOS/Arch or Ubuntu/Debian and installs Git if missing, using sudo when needed. `./install.sh` also runs this check before installing application dependencies, including for ZIP downloads.
+
+Alternatively, install Git directly:
+
+```bash
+# CachyOS / Arch
+sudo pacman -Syu --needed git
+```
+
+```bash
+# Ubuntu / Debian
+sudo apt-get update
+sudo apt-get install -y git
+```
+
+## 1. Install remaining prerequisites
 
 ### CachyOS / Arch Linux
 
 ```bash
-sudo pacman -Syu --needed git nodejs-lts-krypton npm base-devel python ffmpeg
+sudo pacman -Syu --needed nodejs-lts-krypton npm base-devel python ffmpeg
 ```
 
 This uses the [Arch Node.js 24 LTS package](https://archlinux.org/packages/extra/x86_64/nodejs-lts-krypton/). FFmpeg provides video metadata and thumbnails.
@@ -18,7 +41,7 @@ Install build tools, then Node.js 24 LTS with [nvm](https://github.com/nvm-sh/nv
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y git curl ca-certificates build-essential python3 ffmpeg unzip
+sudo apt-get install -y curl ca-certificates build-essential python3 ffmpeg unzip
 curl -fsSLo /tmp/ommi-nvm-install.sh https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.8/install.sh
 bash /tmp/ommi-nvm-install.sh
 export NVM_DIR="${XDG_CONFIG_HOME:-$HOME}/.nvm"

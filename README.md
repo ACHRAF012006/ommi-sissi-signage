@@ -2,6 +2,8 @@
 
 **Download for CachyOS or Ubuntu:** [Linux installation guide](docs/INSTALL-LINUX.md) · [Download ZIP](https://github.com/ACHRAF012006/ommi-sissi-signage/archive/refs/heads/main.zip) · [Versioned releases](https://github.com/ACHRAF012006/ommi-sissi-signage/releases)
 
+**Install Git first:** download [install-git.sh](https://raw.githubusercontent.com/ACHRAF012006/ommi-sissi-signage/main/install-git.sh) and run `bash install-git.sh` in its download folder. It installs Git using pacman on CachyOS/Arch or apt on Ubuntu/Debian, and skips installation when Git is already available. It works before downloading the rest of this project. Then:
+
 ```bash
 git clone https://github.com/ACHRAF012006/ommi-sissi-signage.git
 cd ommi-sissi-signage

@@ -1,5 +1,12 @@
 # Vérification de livraison
 
+## Version 1.0.2 — installation de Git en premier
+
+- `install-git.sh` fonctionne seul, avant le clonage du dépôt, sans Node.js ni fichiers du projet. Il installe Git avec pacman ou apt si nécessaire et ignore une installation déjà disponible.
+- `install.sh` appelle ce script avant la vérification de Node.js et l’installation des dépendances.
+- Tests avec gestionnaire de paquets simulé : Git absent, Git déjà installé, erreurs de paquets, arguments invalides et ordre Git avant Node.js vérifiés. Aucun paquet système réel n’est modifié par les tests.
+- `npm test` : 36 tests réussis sous CachyOS ; syntaxe Bash et `git diff --check` validés. GitHub Actions vérifie également la branche apt sur Ubuntu.
+
 ## Version 1.0.1 — démarrage au boot par défaut
 
 - L’installation Linux active explicitement le service au boot, y compris après réinstallation, sans basculer un service déjà activé vers l’état désactivé.

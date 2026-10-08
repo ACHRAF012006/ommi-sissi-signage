@@ -27,7 +27,7 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - name: Check Linux scripts
-        run: bash -n install.sh start.sh stop.sh toggle-autostart.sh scripts/linux-common.sh
+        run: bash -n install-git.sh install.sh start.sh stop.sh toggle-autostart.sh scripts/linux-common.sh
       - name: Install npm version
         run: npm install --global npm@${{ matrix.npm }}
       - run: npm ci

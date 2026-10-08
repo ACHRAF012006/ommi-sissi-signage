@@ -89,7 +89,7 @@ test('start script launches from any directory, detects duplicates and can be st
 
 test('installer enables boot by default, remains enabled on reinstall, supports opt-out and reports service errors',{skip:process.platform!=='linux'||!fs.existsSync('/run/systemd/system')},()=>{
  const root=fixture('installer with spaces');const {env,stateFile,calls,bin}=serviceManagerFixture(root);
- for(const file of ['install.sh','scripts/setup-env.js','.env.example'])fs.copyFileSync(file,path.join(root,file));
+ for(const file of ['install-git.sh','install.sh','scripts/setup-env.js','.env.example'])fs.copyFileSync(file,path.join(root,file));
  const npmCalls=path.join(root,'npm-calls.jsonl');
  fs.writeFileSync(path.join(bin,'npm'),`#!/usr/bin/env node
 import fs from 'node:fs';fs.appendFileSync(process.env.SIGNAGE_NPM_CALLS,JSON.stringify(process.argv.slice(2))+'\\n');

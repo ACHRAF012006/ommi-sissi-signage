@@ -9,6 +9,7 @@ case "${1:-}" in
   -h|--help) echo 'Usage : ./install.sh [--no-autostart]'; echo 'Le démarrage au boot via systemd est activé par défaut (sudo peut être demandé).'; exit 0 ;;
   *) echo 'Usage : ./install.sh [--no-autostart]' >&2; exit 2 ;;
 esac
+bash ./install-git.sh
 if [[ -f /etc/os-release ]]; then source /etc/os-release; fi
 node_ok=false
 if command -v node >/dev/null 2>&1; then node -e 'const [a,b]=process.versions.node.split(".").map(Number);process.exit(a>22||(a===22&&b>=12)?0:1)' && node_ok=true; fi
