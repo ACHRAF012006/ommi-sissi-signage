@@ -61,9 +61,19 @@ npm --version
 
 ## 2. Download the project
 
-Using Git:
+On CachyOS / Arch, install Git before cloning:
 
 ```bash
+sudo pacman -Syu --needed git
+git clone https://github.com/ACHRAF012006/ommi-sissi-signage.git
+cd ommi-sissi-signage
+```
+
+On Ubuntu / Debian, install Git before cloning:
+
+```bash
+sudo apt-get update
+sudo apt-get install -y git
 git clone https://github.com/ACHRAF012006/ommi-sissi-signage.git
 cd ommi-sissi-signage
 ```
